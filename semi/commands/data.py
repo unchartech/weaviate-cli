@@ -44,7 +44,8 @@ def _delete_all(client: weaviate.Client):
     client.schema.create(schema)
 
 
-def import_data_from_file(cfg: Configuration, file: str, fail_on_error: bool) -> None:
+def import_data_from_file(cfg: Configuration, file: str,
+                          fail_on_error: bool) -> None:
     """
     Import data from a file.
 
@@ -63,8 +64,8 @@ def import_data_from_file(cfg: Configuration, file: str, fail_on_error: bool) ->
 
 
 class DataFileImporter:
-
-    def __init__(self, client: weaviate.Client, data_path: str, fail_on_error: bool):
+    def __init__(self, client: weaviate.Client, data_path: str,
+                 fail_on_error: bool):
         """
         Initialize a DataFileImporter.
 
@@ -88,8 +89,7 @@ class DataFileImporter:
             )
         else:
             self.batcher = client.batch(
-                batch_size=32,
-                dynamic=True,
+                batch_size=256,
                 callback=self._exit_on_error,
             )
         with open(data_path, 'r') as data_io:
@@ -132,8 +132,8 @@ class DataFileImporter:
         else:
             self.batcher.flush()
 
-class ValidateAndSplitData:
 
+class ValidateAndSplitData:
     def __init__(self, data: dict, schema: dict):
         """
         Initialize a ValidateAndSplitData class instance.
@@ -181,18 +181,25 @@ class ValidateAndSplitData:
         if vector is not None:
             import_object_parameter['vector'] = vector
 
-        for obj_property_name, obj_property_val in obj.get('properties', {}).items():
+        for obj_property_name, obj_property_val in obj.get('properties',
+                                                           {}).items():
             if obj_property_name in schema_definition['primitive']:
                 # property is primitive -> add to data import list
-                import_object_parameter['data_object'][obj_property_name] = obj_property_val
+                import_object_parameter['data_object'][
+                    obj_property_name] = obj_property_val
             elif obj_property_name in schema_definition['ref']:
                 # property is reference to a different object
                 # convert property into batch request parameters
-                ref_parameters = dissect_reference(obj_property_val, obj_class_name, object_id, obj_property_name)
+                ref_parameters = dissect_reference(obj_property_val,
+                                                   obj_class_name, object_id,
+                                                   obj_property_name)
                 self.data_references += ref_parameters
             else:
-                _exit_validation_failed(f"Property {obj_property_name} of class {obj_class_name} not in schema!")
+                _exit_validation_failed(
+                    f"Property {obj_property_name} of class {obj_class_name} not in schema!"
+                )
         self.data_objects.append(import_object_parameter)
+
 
 def _exit_validation_failed(reason: str):
     """
@@ -208,7 +215,8 @@ def _exit_validation_failed(reason: str):
     sys.exit(1)
 
 
-def dissect_reference(refs: list, from_class: str, from_id: str, from_prop: str) -> list:
+def dissect_reference(refs: list, from_class: str, from_id: str,
+                      from_prop: str) -> list:
     """
     Dissect a reference list into the parametes required for a batch request.
 
@@ -257,8 +265,7 @@ def dissect_schema(schema: dict) -> dict:
     dict
         A dict with each class and separated primitive and complex properties.
     """
-    dissected = {
-    }
+    dissected = {}
     for class_ in schema.get('classes', []):
         prim, ref = _get_schema_properties(class_['properties'])
         dissected[class_['class']] = {
