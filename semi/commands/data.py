@@ -89,7 +89,7 @@ class DataFileImporter:
             )
         else:
             self.batcher = client.batch(
-                batch_size=256,
+                batch_size=128,
                 callback=self._exit_on_error,
             )
         with open(data_path, 'r') as data_io:
