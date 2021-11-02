@@ -88,7 +88,8 @@ class DataFileImporter:
             )
         else:
             self.batcher = client.batch(
-                batch_size=512,
+                batch_size=32,
+                dynamic=True,
                 callback=self._exit_on_error,
             )
         with open(data_path, 'r') as data_io:
@@ -151,9 +152,9 @@ class ValidateAndSplitData:
         self.data_references = []
 
     def validate_and_split(self) -> None:
-        """ 
+        """
         Go through the entire data and validate it against a schema
-        if not valid exit with error, if valid split it into the 
+        if not valid exit with error, if valid split it into the
         primitive object and the references.
         """
 
@@ -216,7 +217,7 @@ def dissect_reference(refs: list, from_class: str, from_id: str, from_prop: str)
     refs : list
         A list of references to be dissected.
     from_class : str
-        The object's class name. 
+        The object's class name.
     from_id : str
         The id of the object.
     from_prop : str
@@ -242,7 +243,7 @@ def dissect_reference(refs: list, from_class: str, from_id: str, from_prop: str)
 
 
 def dissect_schema(schema: dict) -> dict:
-    """ 
+    """
     Dissect the schema into a dict listing all classes with their name as key to have faster
     validation access.
 
